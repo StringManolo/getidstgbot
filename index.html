@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Telegram Group Monitor Bot</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f5;
+  padding: 40px 20px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto 30px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 30px;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #1a1a1a;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+  background: white;
+  color: #333;
+  font-weight: 500;
+}
+
+button:hover {
+  background: #f8f8f8;
+}
+
+button.primary {
+  background: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
+}
+
+button.primary:hover {
+  background: #357abd;
+}
+
+button.danger {
+  color: #d9534f;
+  border-color: #d9534f;
+}
+
+button.danger:hover {
+  background: #d9534f;
+  color: white;
+}
+
+.status {
+  padding: 12px;
+  border-radius: 3px;
+  margin-top: 15px;
+  font-size: 13px;
+  border-left: 3px solid;
+}
+
+.status.success {
+  background: #f0f9f4;
+  border-color: #28a745;
+  color: #1e7e34;
+}
+
+.status.error {
+  background: #fef5f5;
+  border-color: #dc3545;
+  color: #a71d2a;
+}
+
+.status.info {
+  background: #f0f7fb;
+  border-color: #4a90e2;
+  color: #31708f;
+}
+
+.groups-list {
+  border: 1px solid #eee;
+  border-radius: 3px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.group-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.group-item:last-child {
+  border-bottom: none;
+}
+
+.group-item:hover {
+  background: #fafafa;
+}
+
+.group-info {
+  flex: 1;
+}
+
+.group-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.group-id {
+  font-size: 12px;
+  color: #666;
+  font-family: monospace;
+}
+
+.copy-id-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+textarea {
+  width: 100%;
+  height: 400px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.checkbox-group {
+  margin-top: 15px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 3px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: normal;
+  margin: 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 20px 10px;
+  }
+  
+  .container {
+    padding: 20px;
+  }
+  
+  .button-row {
+    flex-direction: column;
+  }
+  
+  button {
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Telegram Group Monitor</h1>
+  <p class="subtitle">Monitoriza nuevos miembros en tus grupos</p>
+  
+  <div class="status info">
+    <strong>🔔 Notificaciones automáticas activadas</strong><br>
+    Los nuevos miembros se notificarán automáticamente al grupo de admins
+  </div>
+  
+  <h2>Configuración</h2>
+  
+  <div class="form-group">
+    <label for="token">Token del Bot</label>
+    <input type="text" id="token" placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz" oninput="autoSaveConfig()">
+    <div class="hint">Obtén tu token con @BotFather en Telegram</div>
+  </div>
+
+  <div class="form-group">
+    <label for="maxUsers">Número de usuarios a mostrar</label>
+    <input type="number" id="maxUsers" value="10" min="1" max="100" onchange="autoSaveConfig()">
+    <div class="hint">Máximo de usuarios por grupo en el registro</div>
+  </div>
+
+  <div class="button-row">
+    <button class="primary" onclick="loadGroups()">Mostrar Grupos</button>
+    <button class="primary" onclick="monitorGroups()">Monitorizar Ahora</button>
+    <button onclick="clearData()">Limpiar Datos</button>
+    <button class="danger" onclick="clearConfig()">Borrar Config</button>
+  </div>
+
+  <div class="checkbox-group">
+    <label>
+      <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+      Actualizar automáticamente cada 30 segundos
+    </label>
+  </div>
+
+  <div id="status" style="display: none;"></div>
+</div>
+
+<div class="container">
+  <h2>Grupos del Bot</h2>
+  <div id="groupsList" class="groups-list">
+    <div class="empty-state">Haz clic en "Mostrar Grupos" para ver la lista</div>
+  </div>
+</div>
+
+<div class="container">
+  <h2>Registro de Nuevos Miembros</h2>
+  <textarea id="results" readonly placeholder="Los nuevos miembros aparecerán aquí..."></textarea>
+  <div class="button-row">
+    <button onclick="copyToClipboard()">Copiar Registro</button>
+  </div>
+</div>
+
+<script>
+// Variables globales
+let TOKEN = "";
+let MAX_USERS = 10;
+let autoRefreshInterval = null;
+let processedUpdates = new Set();
+let membersByGroup = {};
+
+// Grupo hardcodeado para notificaciones
+const NOTIFICATION_GROUP = "-5195335731";
+
+// Cargar configuración guardada
+function loadConfig() {
+  const savedToken = localStorage.getItem('telegram_token');
+  const savedMaxUsers = localStorage.getItem('max_users');
+  const savedData = localStorage.getItem('members_data');
+  
+  if (savedToken) {
+    document.getElementById('token').value = savedToken;
+    TOKEN = savedToken;
+  }
+  if (savedMaxUsers) {
+    document.getElementById('maxUsers').value = savedMaxUsers;
+    MAX_USERS = parseInt(savedMaxUsers);
+  }
+  if (savedData) {
+    membersByGroup = JSON.parse(savedData);
+    updateDisplay();
+  }
+}
+
+// Auto-guardar configuración (se ejecuta al cambiar campos)
+function autoSaveConfig() {
+  TOKEN = document.getElementById('token').value.trim();
+  MAX_USERS = parseInt(document.getElementById('maxUsers').value) || 10;
+  
+  localStorage.setItem('telegram_token', TOKEN);
+  localStorage.setItem('max_users', MAX_USERS);
+  
+  const statusDiv = document.getElementById('status');
+  if (statusDiv) {
+    statusDiv.className = 'status success';
+    statusDiv.textContent = 'Configuración guardada';
+    statusDiv.style.display = 'block';
+    
+    setTimeout(function() {
+      statusDiv.style.display = 'none';
+    }, 2000);
+  }
+}
+
+// Borrar toda la configuración guardada
+function clearConfig() {
+  if (confirm('¿Estás seguro de que quieres borrar toda la configuración?')) {
+    localStorage.removeItem('telegram_token');
+    localStorage.removeItem('max_users');
+    
+    document.getElementById('token').value = '';
+    document.getElementById('maxUsers').value = '10';
+    
+    TOKEN = '';
+    MAX_USERS = 10;
+    
+    showStatus('Configuración borrada', 'success');
+  }
+}
+
+// Mostrar estado
+function showStatus(message, type = 'info') {
+  const statusDiv = document.getElementById('status');
+  statusDiv.className = 'status ' + type;
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+}
+
+// Notificar nuevo miembro al grupo
+function notifyNewMember(memberInfo, groupName) {
+  if (!TOKEN) return;
+  
+  const message = "🚨 Nuevo miembro en " + groupName + ":\n" +
+                  "Nombre: " + memberInfo.firstName + " " + memberInfo.lastName + "\n" +
+                  "Username: " + memberInfo.username + "\n" +
+                  "ID: " + memberInfo.id;
+  
+  const encodedMessage = encodeURIComponent(message);
+  
+  peticionGET("https://api.telegram.org/bot" + TOKEN + "/sendMessage?chat_id=" + NOTIFICATION_GROUP + "&text=" + encodedMessage, function() {
+    // Notificación enviada silenciosamente
+  });
+}
+
+// Petición GET
+function peticionGET(url, callback) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", url, true);
+  xhr.send();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4) {
+      if (xhr.status == 200 || xhr.status == 0) {
+        callback(xhr.responseText);
+      } else {
+        showStatus('Error en la petición: ' + xhr.status, 'error');
+      }
+    }
+  }
+}
+
+// Obtener lista de grupos
+function loadGroups() {
+  if (!TOKEN) {
+    showStatus('Por favor, configura el token primero', 'error');
+    return;
+  }
+  
+  showStatus('Obteniendo lista de grupos...', 'info');
+  
+  peticionGET("https://api.telegram.org/bot" + TOKEN + "/getUpdates", function(response) {
+    try {
+      const data = JSON.parse(response);
+      
+      if (!data.ok) {
+        showStatus('Error al obtener grupos: ' + (data.description || 'Token inválido'), 'error');
+        return;
+      }
+      
+      const groups = new Map();
+      
+      if (data.result && data.result.length > 0) {
+        data.result.forEach(update => {
+          let chat = null;
+          
+          if (update.message && update.message.chat) {
+            chat = update.message.chat;
+          } else if (update.my_chat_member && update.my_chat_member.chat) {
+            chat = update.my_chat_member.chat;
+          }
+          
+          if (chat && (chat.type === 'group' || chat.type === 'supergroup')) {
+            groups.set(chat.id, {
+              id: chat.id,
+              title: chat.title || 'Grupo sin nombre',
+              type: chat.type
+            });
+          }
+        });
+      }
+      
+      displayGroups(groups);
+      
+    } catch (e) {
+      showStatus('Error al procesar la respuesta: ' + e.message, 'error');
+    }
+  });
+}
+
+// Mostrar grupos
+function displayGroups(groups) {
+  const groupsDiv = document.getElementById('groupsList');
+  
+  if (groups.size === 0) {
+    groupsDiv.innerHTML = '<div class="empty-state">No se encontraron grupos</div>';
+    showStatus('No se encontraron grupos', 'info');
+    return;
+  }
+  
+  let html = '';
+  groups.forEach(group => {
+    html += `
+      <div class="group-item">
+        <div class="group-info">
+          <div class="group-name">${escapeHtml(group.title)}</div>
+          <div class="group-id">ID: ${group.id}</div>
+        </div>
+        <button class="copy-id-btn" onclick="copyGroupId('${group.id}')">Copiar ID</button>
+      </div>
+    `;
+  });
+  
+  groupsDiv.innerHTML = html;
+  showStatus('Se encontraron ' + groups.size + ' grupo(s)', 'success');
+}
+
+// Función para escapar HTML
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Copiar ID de grupo
+function copyGroupId(groupId) {
+  const tempInput = document.createElement('input');
+  tempInput.value = groupId;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand('copy');
+  document.body.removeChild(tempInput);
+  
+  showStatus('ID copiado: ' + groupId, 'success');
+}
+
+// Monitorizar grupos
+function monitorGroups() {
+  if (!TOKEN) {
+    showStatus('Por favor, configura el token primero', 'error');
+    return;
+  }
+  
+  showStatus('Monitorizando nuevos miembros...', 'info');
+  
+  // Variables para acumular todos los resultados
+  let totalNewMembers = 0;
+  let processedInThisRun = 0;
+  
+  // Función recursiva para procesar todos los mensajes pendientes
+  function processAllUpdates(offset) {
+    const url = "https://api.telegram.org/bot" + TOKEN + "/getUpdates" + 
+                (offset ? "?offset=" + offset : "");
+    
+    peticionGET(url, function(response) {
+      try {
+        const data = JSON.parse(response);
+        
+        if (!data.ok) {
+          showStatus('Error: ' + (data.description || 'Token inválido'), 'error');
+          return;
+        }
+        
+        if (!data.result || data.result.length === 0) {
+          // No hay más mensajes, terminamos
+          localStorage.setItem('members_data', JSON.stringify(membersByGroup));
+          updateDisplay();
+          
+          if (totalNewMembers > 0) {
+            showStatus('✓ Procesados ' + processedInThisRun + ' mensajes. Se encontraron ' + totalNewMembers + ' nuevo(s) miembro(s)', 'success');
+          } else {
+            showStatus('No se encontraron nuevos miembros', 'info');
+          }
+          return;
+        }
+        
+        // Procesar este lote de mensajes
+        let lastUpdateId = 0;
+        
+        data.result.forEach(update => {
+          lastUpdateId = Math.max(lastUpdateId, update.update_id);
+          processedInThisRun++;
+          
+          if (processedUpdates.has(update.update_id)) {
+            return;
+          }
+          processedUpdates.add(update.update_id);
+          
+          if (update.message && update.message.new_chat_members) {
+            const chat = update.message.chat;
+            const chatId = chat.id;
+            const chatTitle = chat.title || 'Grupo sin nombre';
+            const date = new Date(update.message.date * 1000);
+            
+            if (!membersByGroup[chatId]) {
+              membersByGroup[chatId] = {
+                title: chatTitle,
+                members: []
+              };
+            }
+            
+            update.message.new_chat_members.forEach(member => {
+              const memberInfo = {
+                id: member.id,
+                firstName: member.first_name || '',
+                lastName: member.last_name || '',
+                username: member.username ? '@' + member.username : 'Sin username',
+                isBot: member.is_bot || false,
+                joinDate: date.toLocaleString('es-ES')
+              };
+              
+              membersByGroup[chatId].members.unshift(memberInfo);
+              
+              if (membersByGroup[chatId].members.length > MAX_USERS) {
+                membersByGroup[chatId].members = membersByGroup[chatId].members.slice(0, MAX_USERS);
+              }
+              
+              totalNewMembers++;
+              
+              // Notificar al grupo hardcodeado
+              notifyNewMember(memberInfo, chatTitle);
+            });
+          }
+        });
+        
+        // Actualizar status intermedio si hay muchos mensajes
+        if (processedInThisRun > 100) {
+          showStatus('Procesando mensajes... (' + processedInThisRun + ' procesados, ' + totalNewMembers + ' nuevos miembros)', 'info');
+        }
+        
+        // Continuar procesando el siguiente lote
+        processAllUpdates(lastUpdateId + 1);
+        
+      } catch (e) {
+        showStatus('Error al procesar datos: ' + e.message, 'error');
+      }
+    });
+  }
+  
+  // Iniciar el procesamiento
+  processAllUpdates(null);
+}
+
+// Actualizar display
+function updateDisplay() {
+  const textarea = document.getElementById('results');
+  let output = '═══════════════════════════════════════════════════════════\n';
+  output += '          NUEVOS MIEMBROS DE GRUPOS - REPORTE\n';
+  output += '═══════════════════════════════════════════════════════════\n';
+  output += 'Generado: ' + new Date().toLocaleString('es-ES') + '\n';
+  output += 'Máximo de usuarios por grupo: ' + MAX_USERS + '\n';
+  output += '═══════════════════════════════════════════════════════════\n\n';
+  
+  const groupIds = Object.keys(membersByGroup);
+  
+  if (groupIds.length === 0) {
+    output += 'No hay datos de miembros. Usa "Monitorizar Grupos Ahora" para empezar.\n';
+  } else {
+    groupIds.forEach((groupId, index) => {
+      const groupData = membersByGroup[groupId];
+      
+      output += `╔═══════════════════════════════════════════════════════════╗\n`;
+      output += `║ GRUPO ${index + 1}: ${groupData.title}\n`;
+      output += `║ ID del Grupo: ${groupId}\n`;
+      output += `║ Total de miembros registrados: ${groupData.members.length}\n`;
+      output += `╚═══════════════════════════════════════════════════════════╝\n\n`;
+      
+      if (groupData.members.length === 0) {
+        output += '  No hay miembros registrados en este grupo.\n\n';
+      } else {
+        groupData.members.forEach((member, idx) => {
+          output += `  ┌─ Miembro #${idx + 1} ─────────────────────────────────────\n`;
+          output += `  │ ID: ${member.id}\n`;
+          output += `  │ Nombre: ${member.firstName} ${member.lastName}\n`;
+          output += `  │ Username: ${member.username}\n`;
+          output += `  │ Es Bot: ${member.isBot ? 'Sí' : 'No'}\n`;
+          output += `  │ Fecha de unión: ${member.joinDate}\n`;
+          output += `  └───────────────────────────────────────────────────────\n\n`;
+        });
+      }
+      
+      output += '\n';
+    });
+  }
+  
+  output += '═══════════════════════════════════════════════════════════\n';
+  output += '                    FIN DEL REPORTE\n';
+  output += '═══════════════════════════════════════════════════════════\n';
+  
+  textarea.value = output;
+}
+
+// Copiar al portapapeles
+function copyToClipboard() {
+  const textarea = document.getElementById('results');
+  textarea.select();
+  document.execCommand('copy');
+  showStatus('Copiado al portapapeles', 'success');
+}
+
+// Limpiar datos
+function clearData() {
+  if (confirm('¿Estás seguro de que quieres borrar todos los datos de miembros?')) {
+    membersByGroup = {};
+    processedUpdates.clear();
+    localStorage.removeItem('members_data');
+    updateDisplay();
+    showStatus('Datos limpiados correctamente', 'success');
+  }
+}
+
+// Auto-refresh
+function toggleAutoRefresh() {
+  const checkbox = document.getElementById('autoRefresh');
+  
+  if (checkbox.checked) {
+    if (!TOKEN) {
+      showStatus('Por favor, configura el token primero', 'error');
+      checkbox.checked = false;
+      return;
+    }
+    
+    autoRefreshInterval = setInterval(monitorGroups, 30000);
+    showStatus('Auto-actualización activada (cada 30 segundos)', 'success');
+    monitorGroups(); // Ejecutar inmediatamente
+  } else {
+    if (autoRefreshInterval) {
+      clearInterval(autoRefreshInterval);
+      autoRefreshInterval = null;
+    }
+    showStatus('Auto-actualización desactivada', 'info');
+  }
+}
+
+// Cargar configuración al iniciar
+window.onload = function() {
+  loadConfig();
+  
+  if (TOKEN) {
+    showStatus('Configuración cargada', 'success');
+  } else {
+    showStatus('Configura el token del bot para empezar', 'info');
+  }
+};
+
+// Limpiar interval al cerrar
+window.onbeforeunload = function() {
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+  }
+};
+</script>
+
+</body>
+</html>
